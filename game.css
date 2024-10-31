@@ -34,16 +34,28 @@ body {
 
     position: fixed;
     transition: top 0.01s ease, bottom 0.01s ease, left 0.01s ease, right 0.01s ease;
+    
+
+    box-shadow: 0px 12px 20px rgba(0, 0, 0, 0.6), /* larger, more opaque shadow */
+                0px 4px 10px rgba(0, 0, 0, 0.3) inset; /* deeper inner shadow */
+}
+
+.dead-player {
+    background-color: greenyellow;
+    animation: player-dying 1s ease-in 0.3s 1 forwards;
 }
 
 .hazard {
-    background: linear-gradient(135deg, #ff4d4d, #ff1a1a); /* Gradient for a vibrant look */
-    width: 50px;                     /* Adjust the width as needed */
-    height: 50px;                    /* Adjust the height as needed */
+    background: linear-gradient(135deg, #ff4d4d, #ff1a1a);
     position: relative;              /* Positioning context */
     box-shadow: 0 4px 15px rgba(255, 0, 0, 0.5); /* Soft shadow for depth */
-    transition: transform 0.3s;     /* Smooth scale transition on hover */
+    transition: opacity 0.3s;     /* Smooth scale transition on hover */
+    opacity: 0;
+    animation: loading-hazard 1s ease 0s 1 forwards;
+    z-index: 10;
 }
+
+
 
 .helper {
     width: 0px;
@@ -53,4 +65,57 @@ body {
 
 .moving-down {
     transform: translateY(1000px);
+}
+
+@keyframes loading-hazard {
+    0% {
+        opacity: 0;
+    }
+    20% {
+        opacity: 0.8;
+    }
+    30% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 0.8;
+    }
+    60% {
+        opacity: 0;
+    }
+    80% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes player-dying {
+    0% {
+        transform: rotateX(0deg) rotateY(0deg);
+        opacity: 1;
+        scale: 1.2;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+    }
+    25% {
+        transform: rotateX(90deg) rotateY(0deg);
+        opacity: 0.8;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.5);
+    }
+    50% {
+        transform: rotateX(90deg) rotateY(90deg);
+        opacity: 0.6;
+        box-shadow: 0 12px 20px rgba(0, 0, 0, 0.3);
+    }
+    75% {
+        transform: rotateX(180deg) rotateY(90deg);
+        opacity: 0.4;
+        box-shadow: 0 16px 25px rgba(0, 0, 0, 0.2);
+    }
+    100% {
+        transform: rotateX(180deg) rotateY(180deg) scale(0.5);
+        opacity: 0;
+        box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1);
+    }
 }

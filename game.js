@@ -32,6 +32,7 @@ const playerCoordinates = {
     'X':[0,playerWidth/distance]
 }
 
+  
 player.addEventListener('keypress', (e) => {
     if (!playing) {return}
     key = e.key.toLowerCase()
@@ -172,7 +173,7 @@ function displayPlayerPosition(){
 // HAZARDS / HAZARD AREAS / GAME END AREAS
 let widthDivisions = 16, 
     heightDivisions = 12,
-    ratioHazards = 0.3,
+    ratioHazards = 0.6,
     numGrids = widthDivisions * heightDivisions
 
 
@@ -181,7 +182,9 @@ let square, numHazards, hazWidth, hazHeight
 
 
 let Hazards = [],
-    hazardData = {}
+    hazardData = {},
+    loadedHazards = [],
+    loadHazards
 
 function generateHazardAreas(){
     Hazards = []
@@ -232,6 +235,7 @@ function generateHazardAreas(){
 
 /* console.log('Hazard Width',hazWidth,'::','Hazard Height',hazHeight) */
 function placeHazards(){
+    loadedHazards = []
     // This function places the hazards in the game area
     let divs = ''
     
@@ -246,14 +250,19 @@ function placeHazards(){
     })
 
     hazardContainer.innerHTML = divs
-    checkPlayerAlive()
+
+    setTimeout(() => {
+        loadedHazards = Hazards
+        checkPlayerAlive()
+    }, 1010)
+    
 }
 
 function generateHazards() {
-    setInterval(() => {
+    loadHazards = setInterval(() => {
         generateHazardAreas()
         placeHazards()
-    }, 2500);
+    }, 3000);
 }
 
 
@@ -328,12 +337,28 @@ function checkPlayerAlive () {
     let alive = true
 
     playerRegions.forEach((region) => {
-        if (Hazards.includes(region)) {
+        if (loadedHazards.includes(region)) {
             alive =  false
         }
     })
-
+    console.log(alive)
+    if (!alive) {
+        endGame()
+    }
     return alive
+}
+
+function endGame() {
+    playing = false
+
+    // Stop the player from moving
+    stationPlayer()
+
+    // Stop loading hazards
+    clearInterval(loadHazards)
+
+    player.classList.toggle('dead-player')
+
 }
 
 updatePlayer()
