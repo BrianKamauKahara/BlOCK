@@ -107,6 +107,7 @@ function update(direction) {
             playerCoordinates['Y'][0]++
             playerCoordinates['Y'][1]++
             player.style.top = -distance*playerCoordinates['Y'][0] + 'px'
+            checkPlayerAlive()
             break
         case 's':
             // Positions the player ten pixels down
@@ -114,6 +115,7 @@ function update(direction) {
             playerCoordinates['Y'][0]--
             playerCoordinates['Y'][1]--
             player.style.top = -distance*playerCoordinates['Y'][0] + 'px'
+            checkPlayerAlive()
             break
         case 'd':
             // Positions the player ten pixels right
@@ -121,6 +123,7 @@ function update(direction) {
             playerCoordinates['X'][0]++
             playerCoordinates['X'][1]++
             player.style.left = distance*playerCoordinates['X'][0] + 'px'
+            checkPlayerAlive()
             break
         case 'a':
             // Positions the player ten pixels left
@@ -128,6 +131,7 @@ function update(direction) {
             playerCoordinates['X'][0]--
             playerCoordinates['X'][1]--
             player.style.left = distance*playerCoordinates['X'][0] + 'px'
+            checkPlayerAlive()
             break
     }
 }
@@ -141,7 +145,6 @@ function playerCurrentXY () {
 
 // This function tells the program to continuously update the player's position
 let interval;
-
 const updatePlayer = function() {
     playing = true
     interval = setInterval(() => {
@@ -157,17 +160,14 @@ const stationPlayer = function() {
     clearInterval(interval)
 }
 
-updatePlayer()
-
 // This function displays the players position every second
 function displayPlayerPosition(){
     setInterval(function () {
         /* console.log(...playerCurrentXY()) */
-        getPlayerRegions()
+        /* getPlayerRegions() */
     }, 1000)
 }
 
-displayPlayerPosition()
 
 // HAZARDS / HAZARD AREAS / GAME END AREAS
 let widthDivisions = 16, 
@@ -184,7 +184,6 @@ let Hazards = [],
     hazardData = {}
 
 function generateHazardAreas(){
-    console.log(square)
     Hazards = []
     hazardData = {}
 
@@ -229,7 +228,6 @@ function generateHazardAreas(){
     })
 
     console.log(Hazards)
-    console.log(square)
 }
 
 /* console.log('Hazard Width',hazWidth,'::','Hazard Height',hazHeight) */
@@ -248,7 +246,7 @@ function placeHazards(){
     })
 
     hazardContainer.innerHTML = divs
-    console.log(hazardContainer)
+    checkPlayerAlive()
 }
 
 function generateHazards() {
@@ -258,7 +256,6 @@ function generateHazards() {
     }, 2500);
 }
 
-//generateHazards()
 
 function getPlayerRegions (){
     let playerCoords = playerCurrentXY()
@@ -288,7 +285,6 @@ function getPlayerRegions (){
         [playerCoords[0][1], playerCoords[1][1]]
     ]
 
-    console.log(playerCorners)
 
     /* 2. Convert the co-ordinates of the corners to regions */
 
@@ -322,3 +318,24 @@ function getPlayerRegions (){
 }
 
 
+function checkPlayerAlive () {
+    /* 
+    This function checks whether the player is alive, by checking whether
+    the player has strayed into a hazard. If they have, then the function
+    returns false, else, it returns true
+    */
+    const playerRegions = getPlayerRegions()
+    let alive = true
+
+    playerRegions.forEach((region) => {
+        if (Hazards.includes(region)) {
+            alive =  false
+        }
+    })
+
+    return alive
+}
+
+updatePlayer()
+displayPlayerPosition()
+generateHazards()
