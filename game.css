@@ -1,0 +1,52 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    height: 100vh;
+    width: 100vw;
+    background-color: azure;
+    display: grid;
+    flex-direction: column;
+    position: absolute;
+    border: 2px solid black;
+    overflow: hidden;
+    grid-template-rows: 1fr;
+    
+}
+
+.hazards-container {
+    background-color: red;
+    display: grid;
+    height: 100vh;
+    width: 100vw;
+    /* grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(9, 1fr); */
+}
+
+.user-square {
+    width: 25px;
+    height: 25px;
+    background-color: blueviolet;
+    cursor: none;
+    color: blueviolet;
+    outline: none;
+    border: none;
+    border-radius: 50%;
+
+    position: fixed;
+    transition: top 0.01s ease, bottom 0.01s ease, left 0.01s ease, right 0.01s ease;
+
+}
+
+.helper {
+    width: 0px;
+    height: 0px;
+    border: none;
+}
+
+.moving-down {
+    transform: translateY(1000px);
+}
