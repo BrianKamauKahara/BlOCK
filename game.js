@@ -1,11 +1,12 @@
 const player = document.getElementById('player'),
     body = document.querySelector('body'),
-    computedBody = window.getComputedStyle(body)
+    computedBody = window.getComputedStyle(body),
+    hazardContainer = document.getElementById('hazard-area')
     
 
 const playerCoordinates = {
-    'Y':0,
-    'X':0
+    'Y':[0,1],
+    'X':[0,1]
 }
 
 
@@ -13,14 +14,14 @@ const playerCoordinates = {
 player.style.height = player.style.width = '50px'
 
 
-const bodyHeight = Number(computedBody.height.split('p')[0]) - 2,
-    bodyWidth = Number(computedBody.width.split('p')[0]) - 2,
+const bodyHeight = Number(computedBody.height.split('p')[0]),
+    bodyWidth = Number(computedBody.width.split('p')[0]),
     playerHeight = Number(player.style.height.split('p')[0]),
     playerWidth = Number(player.style.width.split('p')[0])
 
 
 
-//const [trail_X, trail_Y ] = trail
+let playing = false
 
 const keyStates = {
     'w':false,
@@ -33,6 +34,7 @@ let distance = 10,
     speed = 20
 
 player.addEventListener('keypress', (e) => {
+    if (!playing) {return}
     key = e.key.toLowerCase()
     
     // Returns for any other key
@@ -58,6 +60,7 @@ player.addEventListener('keypress', (e) => {
 
 
 player.addEventListener('keyup', (e) => {
+    if (!playing) {return}
     key = e.key.toLowerCase()
 
     // Returns for any other key
@@ -101,35 +104,47 @@ function update(direction) {
     switch (direction){
         case 'w':
             // Positions the player ten pixels up
-            if(playerCoordinates['Y'] >= 0 ) {return}
-            playerCoordinates['Y']++
-            player.style.top = -distance*playerCoordinates['Y'] + 'px'
+            if(playerCoordinates['Y'][0] >= 0 ) {return}
+            playerCoordinates['Y'][0]++
+            playerCoordinates['Y'][1]++
+            player.style.top = -distance*playerCoordinates['Y'][0] + 'px'
             break
         case 's':
             // Positions the player ten pixels down
-            if(playerCoordinates['Y'] <= -bodyHeight/distance + playerHeight/distance) {return}
-            playerCoordinates['Y']--
-            player.style.top = -distance*playerCoordinates['Y'] + 'px'
+            if(playerCoordinates['Y'][0] <= -bodyHeight/distance + playerHeight/distance) {return}
+            playerCoordinates['Y'][0]--
+            playerCoordinates['Y'][1]--
+            player.style.top = -distance*playerCoordinates['Y'][0] + 'px'
             break
         case 'd':
             // Positions the player ten pixels right
-            if(playerCoordinates['X'] >= bodyWidth/distance - playerWidth/distance) {return}
-            playerCoordinates['X']++
-            player.style.left = distance*playerCoordinates['X'] + 'px'
+            if(playerCoordinates['X'][0] >= bodyWidth/distance - playerWidth/distance) {return}
+            playerCoordinates['X'][0]++
+            playerCoordinates['X'][1]++
+            player.style.left = distance*playerCoordinates['X'][0] + 'px'
             break
         case 'a':
             // Positions the player ten pixels left
-            if(playerCoordinates['X'] <= 0 ) {return}
-            playerCoordinates['X']--
-            player.style.left = distance*playerCoordinates['X'] + 'px'
+            if(playerCoordinates['X'][0] <= 0 ) {return}
+            playerCoordinates['X'][0]--
+            playerCoordinates['X'][1]--
+            player.style.left = distance*playerCoordinates['X'][0] + 'px'
             break
     }
 }
 
-let interval;
+// This function returns the player's position
+function playerCurrentXY () {
+    return [playerCoordinates['X'],playerCoordinates['Y']]
+}
+
+
 
 // This function tells the program to continuously update the player's position
+let interval;
+
 const updatePlayer = function() {
+    playing = true
     interval = setInterval(() => {
         update('w')
         update('s')
@@ -146,11 +161,107 @@ const stationPlayer = function() {
 updatePlayer()
 
 // This function displays the players position every second
-setInterval(function () {
-    const playerPos = player.getBoundingClientRect();
-    const bodyPos = body.getBoundingClientRect();
+function displayPlayerPosition(){
+    setInterval(function () {
+        console.log(...playerCurrentXY())
+    }, 1000)
+}
 
-    console.log(playerPos.bottom, bodyPos.bottom)
-    console.log(playerCoordinates['X'], playerCoordinates['Y'])
-}, 1000)
+displayPlayerPosition()
 
+// HAZARDS / HAZARD AREAS / GAME END AREAS
+let widthDivisions = 16, 
+    heightDivisions = 12,
+    ratioHazards = 0.3,
+    numGrids = widthDivisions * heightDivisions
+
+// This is the hazard area divided into a grid. 
+let square, numHazards, hazWidth, hazHeight
+
+
+// This will contain the grid areas that contain hazards
+let Hazards = []
+let hazardData = {}
+
+function generateHazardAreas(){
+    console.log(square)
+    Hazards = []
+    hazardData = {}
+
+    // This is the hazard area divided into a grid. 
+    square = Array.from({ length: numGrids }, (_, index) => index + 1)
+
+    // This is the number of hazards, given by the ratio provided
+    numHazards = Math.floor(numGrids * ratioHazards) + 1
+
+    // This is the width and height of the hazards
+    hazWidth = bodyWidth/widthDivisions,
+            hazHeight = bodyHeight/heightDivisions
+
+    // Generate the hazards at random places. For now, this process is random
+    for (let i =0; i < numHazards; i++){
+        // Get that random place
+        Hazards.push(...square.splice(Math.floor(Math.random() * (numGrids - i + 1)),1))
+    }
+
+    // Going through each hazard
+    Hazards.forEach((hazard) => {
+
+        // Determine the row AND column
+        let row = Math.floor((hazard - 1) / widthDivisions) + 1
+        let column = ((hazard - 1) % widthDivisions) + 1
+        
+        // Position the hazard (in terms of pixels)
+        let hazardX = (column - 1) * hazWidth
+        let hazardY = (row - 1) * hazHeight
+
+        // Store this data
+        hazardData[hazard] = {
+            "co-ords": {
+                'R':row,
+                'C':column
+            },
+            "placement": {
+                'X':hazardX,
+                'Y':hazardY
+            }
+        }
+    })
+
+    console.log(Hazards)
+    console.log(square)
+}
+
+/* console.log('Hazard Width',hazWidth,'::','Hazard Height',hazHeight) */
+function placeHazards(){
+    // This function places the hazards in the game area
+    let divs = ''
+    
+    Hazards.forEach((hazard) => {
+        /* let { R, C } = hazardData[hazard]["co-ords"] */
+        let { X: haz_X, Y :haz_Y } = hazardData[hazard]["placement"]
+        /* console.log(hazard,'::',haz_Y.toFixed(1),'by',haz_X.toFixed(1),'::',R,'b',C) */
+        // Each hazard's start location (X and Y) is given as already calculated
+        divs += `
+        <div class="hazard" id="haz_${hazard}" style = "width:${hazWidth}px; height:${hazHeight}px; position: fixed; top:${haz_Y}px; left:${haz_X}px;"></div>
+        `
+    })
+
+    hazardContainer.innerHTML = divs
+    console.log(hazardContainer)
+}
+
+function generateHazards() {
+    setInterval(() => {
+        generateHazardAreas()
+        placeHazards()
+    }, 2500);
+}
+
+//generateHazards()
+
+// Checking the region where the user is in!
+function checkPlayerRegion (){
+    let playerCoords = playerCurrentXY()
+    console.log(playerCoords)
+}

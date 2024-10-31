@@ -18,27 +18,31 @@ body {
 }
 
 .hazards-container {
-    background-color: red;
-    display: grid;
+    background-color: linear-gradient(135deg, #e0f7fa, #81d4fa);
     height: 100vh;
     width: 100vw;
-    /* grid-template-columns: repeat(9, 1fr);
-    grid-template-rows: repeat(9, 1fr); */
 }
 
 .user-square {
     width: 25px;
     height: 25px;
-    background-color: blueviolet;
+    background-color: #6a0dad;
     cursor: none;
     color: blueviolet;
     outline: none;
     border: none;
-    border-radius: 50%;
 
     position: fixed;
     transition: top 0.01s ease, bottom 0.01s ease, left 0.01s ease, right 0.01s ease;
+}
 
+.hazard {
+    background: linear-gradient(135deg, #ff4d4d, #ff1a1a); /* Gradient for a vibrant look */
+    width: 50px;                     /* Adjust the width as needed */
+    height: 50px;                    /* Adjust the height as needed */
+    position: relative;              /* Positioning context */
+    box-shadow: 0 4px 15px rgba(255, 0, 0, 0.5); /* Soft shadow for depth */
+    transition: transform 0.3s;     /* Smooth scale transition on hover */
 }
 
 .helper {
