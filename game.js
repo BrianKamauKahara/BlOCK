@@ -4,11 +4,6 @@ const player = document.getElementById('player'),
     hazardContainer = document.getElementById('hazard-area')
     
 
-const playerCoordinates = {
-    'Y':[0,1],
-    'X':[0,1]
-}
-
 
 // Giving the player height and width
 player.style.height = player.style.width = '50px'
@@ -18,7 +13,6 @@ const bodyHeight = Number(computedBody.height.split('p')[0]),
     bodyWidth = Number(computedBody.width.split('p')[0]),
     playerHeight = Number(player.style.height.split('p')[0]),
     playerWidth = Number(player.style.width.split('p')[0])
-
 
 
 let playing = false
@@ -33,13 +27,18 @@ const keyStates = {
 let distance = 10,
     speed = 20
 
+const playerCoordinates = {
+    'Y':[0,-playerHeight/distance],
+    'X':[0,playerWidth/distance]
+}
+
 player.addEventListener('keypress', (e) => {
     if (!playing) {return}
     key = e.key.toLowerCase()
     
     // Returns for any other key
     if (key !=='w'&& key !=='a' && key !=='s' && key!=='d') {return}
-    console.log("Moving",key)
+    /* console.log("Moving",key) */
     
     /* 
     Upon testing, this is the best method I have come up with. So bear with
@@ -66,7 +65,7 @@ player.addEventListener('keyup', (e) => {
     // Returns for any other key
     if (key !=='w' && key !=='a' && key !=='s' && key!=='d') {return}
 
-    console.log("Stopping",key)
+    /* console.log("Stopping",key) */
 
     // Stops the program from moving in a certain direction any more
     keyStates[key] = false
@@ -87,18 +86,18 @@ function update(direction) {
     coordinates are kept track of. Therefore, every updatement is simply a re-positioning 
     to the correctly calculated co-ordinates
 
-    Note that, the player's co-ordinates work like a graph, with a small
-    difference though. While the top corner is (0,0), Moving down would not be moving into
-    negative y co-ordinate territory as one would expect. Instead, moving down increases
-    the y-ordinate rather than decreases it
-    Thus, the player would normally have a positive x-ordinate, and a positive y-ordinate
+    Note that, the player's co-ordinates work like a graph
+    Thus, the player would normally have a positive x-ordinate, and a negative y-ordinate
+    (since the start point is the top corner)
     
 
-                   (-1)
-                    /\ 
-             (-1)<------>(+1)
-                    \/
                    (+1)
+                    /\ 
+             (-1)<--OO-->(+1)
+                    \/
+                   (-1)
+
+            (OO - origin)
 
     */
     switch (direction){
@@ -163,7 +162,8 @@ updatePlayer()
 // This function displays the players position every second
 function displayPlayerPosition(){
     setInterval(function () {
-        console.log(...playerCurrentXY())
+        /* console.log(...playerCurrentXY()) */
+        getPlayerRegions()
     }, 1000)
 }
 
@@ -175,13 +175,13 @@ let widthDivisions = 16,
     ratioHazards = 0.3,
     numGrids = widthDivisions * heightDivisions
 
-// This is the hazard area divided into a grid. 
+
 let square, numHazards, hazWidth, hazHeight
 
 
-// This will contain the grid areas that contain hazards
-let Hazards = []
-let hazardData = {}
+
+let Hazards = [],
+    hazardData = {}
 
 function generateHazardAreas(){
     console.log(square)
@@ -260,8 +260,65 @@ function generateHazards() {
 
 //generateHazards()
 
-// Checking the region where the user is in!
-function checkPlayerRegion (){
+function getPlayerRegions (){
     let playerCoords = playerCurrentXY()
-    console.log(playerCoords)
+    //console.log(playerCoords)
+
+    /* 
+    This function is necessary to check whether the player has entered 
+    a region where there is a hazard. 
+    This is done by getting the regions the player is in (because the player
+    is a square, it is sufficient to check only the player's corners) 
+    
+    This is the purpose of the function:
+    To convert the player's co-ordinates to regional co-ordinates 
+
+    (The player's co-ordinates are not the same as the regional co-ordinates,
+    because the basis of the player's co- ordinates is the distance global
+    variable defined at the beginning of the program, while the basis of 
+    the regional co-ordinates is the number of divisions within the game 
+    board (e.g, 16 by 12, 9 by 9, 16 by 16))
+    */
+
+    /* 1. Get the four corners */
+    let playerCorners = [
+        [playerCoords[0][0], playerCoords[1][0]],
+        [playerCoords[0][1], playerCoords[1][0]],
+        [playerCoords[0][0], playerCoords[1][1]],
+        [playerCoords[0][1], playerCoords[1][1]]
+    ]
+
+    console.log(playerCorners)
+
+    /* 2. Convert the co-ordinates of the corners to regions */
+
+    // This is where the program will store the regions the player is in
+    let regions = []
+
+    /* These are the maximum values of the regional co - ordinates, useful  in 
+    converting user co-ordinates to region co-ordinates
+    */
+    let maxX = bodyWidth/distance,
+        maxY = bodyHeight/distance
+
+    // Iterating through each corner:...
+    playerCorners.forEach((corner) => {
+        // Get the player-respective x and y co-ordinate of that corner
+        let [ X, Y ] = corner
+        
+        // Converts the player respective co-ords to the regional co-ords
+        let xReg = Math.floor(X / maxX * (widthDivisions)) + 1,
+            yReg = Math.floor(-Y / maxY * (heightDivisions)) + 1
+
+        // Corner case handling 
+        if (xReg === widthDivisions + 1)  { xReg = widthDivisions}
+        if (yReg === heightDivisions + 1)  { yReg = heightDivisions}
+
+        // Store this in the regions list
+        regions.push((yReg-1) * widthDivisions + xReg)
+    })
+
+    return regions
 }
+
+
