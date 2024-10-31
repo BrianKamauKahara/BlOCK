@@ -1,12 +1,12 @@
 const player = document.getElementById('player'),
     body = document.querySelector('body'),
     computedBody = window.getComputedStyle(body),
-    hazardContainer = document.getElementById('hazard-area')
+    gameBoard = document.getElementById('hazard-area')
     
 
 
 // Giving the player height and width
-player.style.height = player.style.width = '50px'
+player.style.height = player.style.width = '40px'
 
 
 const bodyHeight = Number(computedBody.height.split('p')[0]),
@@ -173,18 +173,21 @@ function displayPlayerPosition(){
 // HAZARDS / HAZARD AREAS / GAME END AREAS
 let widthDivisions = 16, 
     heightDivisions = 12,
-    ratioHazards = 0.6,
+    ratioHazards = 0.4,
     numGrids = widthDivisions * heightDivisions
 
 
-let square, numHazards, hazWidth, hazHeight
+let square, numHazards, gridWidth, gridHeight
 
 
 
 let Hazards = [],
     hazardData = {},
     loadedHazards = [],
-    loadHazards
+    loadHazards,
+    coins = [],
+    coinsPlaced = false,
+    coinString
 
 function generateHazardAreas(){
     Hazards = []
@@ -197,8 +200,17 @@ function generateHazardAreas(){
     numHazards = Math.floor(numGrids * ratioHazards) + 1
 
     // This is the width and height of the hazards
-    hazWidth = bodyWidth/widthDivisions,
-            hazHeight = bodyHeight/heightDivisions
+    gridWidth = bodyWidth/widthDivisions
+    gridHeight = bodyHeight/heightDivisions
+
+
+    // First, generate the coins that he user is to collect
+    if (!coinsPlaced){
+        generateCoins('one-chase')
+    } else {
+        square.splice(square.indexOf(coins[0]), 1)
+    }
+    
 
     // Generate the hazards at random places. For now, this process is random
     for (let i =0; i < numHazards; i++){
@@ -209,23 +221,14 @@ function generateHazardAreas(){
     // Going through each hazard
     Hazards.forEach((hazard) => {
 
-        // Determine the row AND column
-        let row = Math.floor((hazard - 1) / widthDivisions) + 1
-        let column = ((hazard - 1) % widthDivisions) + 1
-        
         // Position the hazard (in terms of pixels)
-        let hazardX = (column - 1) * hazWidth
-        let hazardY = (row - 1) * hazHeight
+        const [gridX, gridY] = determinePosition(hazard)
 
         // Store this data
         hazardData[hazard] = {
-            "co-ords": {
-                'R':row,
-                'C':column
-            },
             "placement": {
-                'X':hazardX,
-                'Y':hazardY
+                'X':gridX,
+                'Y':gridY
             }
         }
     })
@@ -233,24 +236,42 @@ function generateHazardAreas(){
     console.log(Hazards)
 }
 
-/* console.log('Hazard Width',hazWidth,'::','Hazard Height',hazHeight) */
+function determinePosition (gridNo) {
+    // Determine the row AND column
+    let row = Math.floor((gridNo - 1) / widthDivisions) + 1
+    let column = ((gridNo - 1) % widthDivisions) + 1
+
+    let gridX = (column - 1) * gridWidth
+    let gridY = (row - 1) * gridHeight
+    return [gridX, gridY]
+}
+
+/* console.log('Hazard Width',gridWidth,'::','Hazard Height',gridHeight) */
 function placeHazards(){
     loadedHazards = []
     // This function places the hazards in the game area
     let divs = ''
     
     Hazards.forEach((hazard) => {
-        /* let { R, C } = hazardData[hazard]["co-ords"] */
         let { X: haz_X, Y :haz_Y } = hazardData[hazard]["placement"]
-        /* console.log(hazard,'::',haz_Y.toFixed(1),'by',haz_X.toFixed(1),'::',R,'b',C) */
+        
         // Each hazard's start location (X and Y) is given as already calculated
         divs += `
-        <div class="hazard" id="haz_${hazard}" style = "width:${hazWidth}px; height:${hazHeight}px; position: fixed; top:${haz_Y}px; left:${haz_X}px;"></div>
+        <div class="hazard" id="haz_${hazard}" style = "width:${gridWidth}px; height:${gridHeight}px; position: fixed; top:${haz_Y}px; left:${haz_X}px;"></div>
         `
     })
 
-    hazardContainer.innerHTML = divs
+    if (!coinsPlaced) {
+        placeCoins('one-chase')   
+    }
+    divs += coinString
+    
 
+    gameBoard.innerHTML = divs
+    
+
+    
+    
     setTimeout(() => {
         loadedHazards = Hazards
         checkPlayerAlive()
@@ -258,10 +279,27 @@ function placeHazards(){
     
 }
 
+function generateCoins(mode) {
+    switch (mode){
+        case 'one-chase':
+            coins.push(...square.splice(Math.floor(Math.random() * (numGrids + 1)),1))
+    }
+}
+
+function placeCoins(mode) {
+    coinsPlaced = true
+    switch (mode) {
+        case 'one-chase':
+            const [gridX, gridY] = determinePosition(coins[0])
+            coinString = `<div class="coin" id="coin_1" style="width: ${gridWidth}px; height: ${gridHeight}px; position: fixed; top: ${gridY}px; left: ${gridX}px;"></div>`
+    }
+}
+
 function generateHazards() {
     loadHazards = setInterval(() => {
         generateHazardAreas()
         placeHazards()
+        
     }, 3000);
 }
 
@@ -341,7 +379,6 @@ function checkPlayerAlive () {
             alive =  false
         }
     })
-    console.log(alive)
     if (!alive) {
         endGame()
     }
@@ -357,6 +394,7 @@ function endGame() {
     // Stop loading hazards
     clearInterval(loadHazards)
 
+    console.log('PLAYER DIED')
     player.classList.toggle('dead-player')
 
 }

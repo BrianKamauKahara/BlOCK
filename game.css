@@ -55,7 +55,15 @@ body {
     z-index: 10;
 }
 
-
+.coin {
+    background: radial-gradient(rgba(255, 217, 0, 0.637),rgb(255, 228, 75),rgba(255, 217, 0, 0)); /* Base color */
+    border-radius: 20%; /* Make it circular */
+    position: relative; /* For z-index context */
+    box-shadow: 0 0 20px rgba(255, 223, 0, 0.8), /* Bright outer glow */
+                0 0 5px rgba(255, 255, 255, 0.5); /* Inner shine */
+    transition: transform 0.2s ease, box-shadow 0.2s ease; /* Smooth scaling and shadow transition */
+    z-index: 20; /* Higher than hazards */
+}
 
 .helper {
     width: 0px;
@@ -63,9 +71,6 @@ body {
     border: none;
 }
 
-.moving-down {
-    transform: translateY(1000px);
-}
 
 @keyframes loading-hazard {
     0% {
@@ -93,6 +98,7 @@ body {
 
 @keyframes player-dying {
     0% {
+        z-index: 20;
         transform: rotateX(0deg) rotateY(0deg);
         opacity: 1;
         scale: 1.2;
