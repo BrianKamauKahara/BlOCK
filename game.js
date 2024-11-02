@@ -35,6 +35,14 @@ const playerCoordinates = {
     'X':[0,playerWidth/distance]
 }
 
+player.addEventListener('keydown', (e)=> {
+    if (e.key === 'Shift'){
+        speed = 50
+        stationPlayer()
+        enablePlayerMovement()
+    }
+    
+})
 // W A S D MOVEMENT EVENT LISTENER
 player.addEventListener('keypress', (e) => {
     if (!playing) {return}
@@ -42,7 +50,6 @@ player.addEventListener('keypress', (e) => {
     
     // Returns for any other key
     if (key !=='w'&& key !=='a' && key !=='s' && key!=='d') {return}
-    /* console.log("Moving",key) */
     
     /* 
     Upon testing, this is the best method I have come up with. So bear with
@@ -65,11 +72,15 @@ player.addEventListener('keypress', (e) => {
 player.addEventListener('keyup', (e) => {
     if (!playing) {return}
     key = e.key.toLowerCase()
-
+    
+    if (key === 'shift'){
+        speed = 20
+        stationPlayer()
+        enablePlayerMovement()
+    }
     // Returns for any other key
     if (key !=='w' && key !=='a' && key !=='s' && key!=='d') {return}
 
-    /* console.log("Stopping",key) */
 
     // Stops the program from moving in a certain direction any more
     keyStates[key] = false
@@ -172,8 +183,8 @@ function playerCurrentXY () {
 // THIS FUNCTION DISPLAYS THE PLAYER'S POSITION EVERY SECOND --- FOR CONVENIENCE
 function displayPlayerPosition(){
     setInterval(function () {
-        /* console.log(...playerCurrentXY()) */
-        /* getPlayerRegions() */
+        console.log(...playerCurrentXY())
+        getPlayerRegions()
     }, 1000)
 }
 
@@ -198,38 +209,48 @@ let Hazards = [],
     coinsPlaced = false,
     coinString,
     hazardDivs,
-    coinDivs
+    coinDivs,
+    deathTimeout
 let gotCoin = false
 
 // THIS FUNCTION CALCULATES AND STORES DATA ON THE AREAS WHERE HAZARDS WILL BE
-function generateHazardAreas(){
+function generateHazardAreas(mode){
+    /* 
+    This function determines where the hazards are to be placed within the game board
+    This function is called :
+    1. Every 3 seconds, or
+    2. When the player gets to a coin 
+    */
+
+    // The Hazards' data is reset
     Hazards = []
     hazardData = {}
 
-    // This is the number of hazards, given by the ratio provided
-    numHazards = Math.floor(numGrids * ratioHazards) + 1
+    switch (mode) {
+        case 'one-chase':
+            // This is the number of hazards to generate, given by the ratio provided
+            numHazards = Math.floor(numGrids * ratioHazards) + 1
 
-    // Generate the hazards at random places. For now, this process is random
-    /* let fullBoard = [...board] */
-    for (let i =0; i < numHazards; i++){
-        // Get that random place
-        Hazards.push(...board.splice(Math.floor(Math.random() * (numGrids)- i + 1),1))
-    }
-    /* board = fullBoard */
-    // Going through each hazard
-    Hazards.forEach((hazard) => {
-
-        // Position the hazard (in terms of pixels)
-        const [gridX, gridY] = determinePosition(hazard)
-
-        // Store this data
-        hazardData[hazard] = {
-            "placement": {
-                'X':gridX,
-                'Y':gridY
+            // Generate the hazards at random places (for one - chase game mode)
+            for (let i = 0; i < numHazards; i++){
+                Hazards.push(...board.splice(Math.floor(Math.random() * board.length),1))
             }
-        }
-    })
+            
+            // Going through each hazard
+            Hazards.forEach((hazard) => {
+
+                // Position the hazard (in terms of pixels)
+                const [gridX, gridY] = determinePosition(hazard)
+
+                // Store this data
+                hazardData[hazard] = {
+                    "placement": {
+                        'X':gridX,
+                        'Y':gridY
+                    }
+                }
+            })
+    }
 }
 
 // THIS FUNCTION CONVERTS GRID NUMBER (REGIONAL CO-ORDS) TO PIXEL POSITION
@@ -245,17 +266,23 @@ function determinePosition (gridNo) {
 
 // THIS FUNCTION PLACES THE HAZARDS ON THE GAME BOARD
 function placeHazards(){
-    /* These are the loaded hazards. 
-    Yes, though the hazards are place immediately as this function  proceeds, 
-    they first go through an animation as if they are 'loading-ing' to give 
-    the player time to escape. Then, once that time period passes, the loadedHazards
-    array is set equal to the hazards list, so that the checkPlayerAlive function
-    (which checks whether the player's regions are in one of the hazard's regions),
+    /* This function places the hazards within the game board */
+    
+    //Reset the string representing the already placed hazards
+    hazardDivs = ''
+
+    /* The array below this comment represents the fully - loaded hazards
+    Yes, though the hazards are placed immediately as this function  proceeds, 
+    they first go through an animation as if they are 'load-ing' to give 
+    the player time to escape. 
+    Once that time period passes, the loadedHazards array is set equal to the hazards array,
+    so that the checkPlayerAlive function 
+    (which checks whether the player has strayed into one of the hazards)
     which uses the loadedHazards list, will function well now
     */
     loadedHazards = []
+
     // This function places the hazards in the game area
-    
     Hazards.forEach((hazard) => {
         let { X: haz_X, Y :haz_Y } = hazardData[hazard]["placement"]
         
@@ -265,50 +292,89 @@ function placeHazards(){
         `
     })
 
+    // The hazards are actually placed within the game board
     gameBoard.innerHTML += hazardDivs 
 }
 
 // THIS FUNCTION CALCULATES AND STORES DATA ON THE AREAS WHERE THE COINS WILL BE
 function generateCoinAreas(mode) {
+    /*
+    This function determines where the coin will be placed on the board
+    It is called 
+    1. When the board is loaded (this happens every:
+        - 3 seconds (in this case, coinsPlaced = true)
+        - time when the player gets to a coin (in this case, coinsPlaced = false)
+    */ 
     /* 
     If the coin has already been placed, the program updates the board, so that 
     when generating the hazards, a hazard does not get placed where a coin is placed
     */
-   console.log(coinsPlaced)
-    if (coinsPlaced) {
-        coinRegions.forEach((coin) => {
-            board.splice(coin-1, 1)
+
+    // If the coin(s) have not already been placed, generate where they will be placed
+    if (!coinsPlaced) {
+        // Depending on the mode, coins are generated differently
+        switch (mode){
+            // one-chase mode
+            case 'one-chase':
+                /* 
+                For one-chase mode, the coin placement is chosen randomly
+                Also note that this chosen slot is removed from board
+                */
+                let index = Math.floor(Math.random() *board.length)
+                board.splice(index,1)
+                
+                // Reset the data concerning where the coins are
+                coinRegions = []
+
+                // Add the position chosen to the coinRegions list
+                coinRegions.push(index)
+                
+                // Reset the coinDivs string
+                coinDivs = ''
+
+                break
+                
+        }
+    } else {
+        /*
+        In the case where the coins have already been placed, then iterate through the 
+        list containing the coin regions, and remove them from the board
+        */
+        coinRegions.forEach((index) => {
+            board.splice(index, 1)
         })
-        coinDivs = ''
-        return
-    }
-    switch (mode){
-        case 'one-chase':
-            // Place the coin on one random tile
-            
-            coinDivs = ''
-            let num = Math.floor(Math.random() *board.length + 1)
-            let pick = board.splice(num - 1,1)
-            
-            /* checkIfInBoard(pick) */
-            coinRegions = []
-            coinRegions.push(...pick)
-            coinsPlaced = true
-            console.log(num,pick,coinRegions)
+        
     }
 }
 
 // THIS FUNCTION PLACES THE COINS ON THE GAMEBOARD
 function placeCoins(mode) {
-    /* Then, the global state coinsPlaced is set to true, so that coins are not generated
-    again in the generated  */
+    // If the coins have already been placed, return
+    /* if (coinsPlaced) {return} */
+
+    /*
+    Place the coins on the game board.
+    This is done by calculating their position based on the regions they have been assigned
+    and assigning their top and left values accordingly
+    */
     
     switch (mode) {
         case 'one-chase':
-            const [gridX, gridY] = determinePosition(coinRegions[0])
+            // Determine the X and Y pixel placement based on the coin's region
+            
+            const [gridX, gridY] = determinePosition(coinRegions[0] + 2) // Plus 2, because the index of a hazard is equal to its value - 2
+
+            //Give the coin its right placement
             coinDivs = `<div class="coin tile" id="coin_1" style="width: ${gridWidth}px; height: ${gridHeight}px; position: fixed; top: ${gridY}px; left: ${gridX}px;"></div>`
+
+            break
     }
+
+    // Add the coinDivs string to the 
     gameBoard.innerHTML += coinDivs
+
+    // Set the global coinsPlaced variable to true
+    coinsPlaced = true
 }
 
 // THIS FUNCTION REPEATEDLY GENERATES THE HAZARDS AND COINS
@@ -318,46 +384,50 @@ function generateBoard(mode) {
                 loadBoard()
 
                 generateCoinAreas(mode)
-                generateHazardAreas()
-
-                
                 placeCoins(mode)
 
-                hazardDivs = ''
+                generateHazardAreas(mode)
                 placeHazards()
+                
+                
 
-                setTimeout(() => {
+                // Time period to allow player to move away from newly loading hazards
+                deathTimeout = setTimeout(() => {
                     loadedHazards = Hazards
                     checkPlayerAlive()
-                }, 1210)
+                }, 1200)
                 break
         }
 
-    loadBoardInterval = setInterval(() => {
-        console.log('ROUND')
-        switch (mode){
-            case 'one-chase':
-                loadBoard()
+        loadBoardInterval = setInterval(() => {
+            console.log('ROUND')
+            switch (mode){
+                case 'one-chase':
+                    loadBoard()
 
-                generateCoinAreas(mode)
-                generateHazardAreas()
+                    generateCoinAreas(mode)
+                    placeCoins(mode)
+                    
+                    generateHazardAreas(mode)
+                    placeHazards()
 
-                
-                placeCoins(mode)
-
-                hazardDivs = ''
-                placeHazards()
-
-                setTimeout(() => {
-                    loadedHazards = Hazards
-                    checkPlayerAlive()
-                }, 1210)
-                break
-        }     
-    }, 3000);
+                    // Time period to allow player to move away from newly loading hazards
+                    deathTimeout = setTimeout(() => {
+                        loadedHazards = Hazards
+                        checkPlayerAlive()
+                    }, 1200)
+                    break
+            }     
+        }, 3000);
 }
 function loadBoard() {
-    board = Array.from({ length: numGrids }, (_, index) => index + 1)
+    /*
+    Generates the data for the grid. This generates from 2 - 192, so that
+    1 is excluded (so that a hazard is not placed on the starting square)
+    */
+    board = Array.from({ length: numGrids - 1 }, (_, index) => index + 2)
+    
+    // Resets the inner HTML of the game Board
     gameBoard.innerHTML = ''
 }
 
@@ -444,35 +514,62 @@ function checkPlayerAlive () {
 
 // This function checks whether the provided region is within the board
 function checkIfInBoard (num) {
-    for (let i = 0; i < 192; i++){
-        if (!board.includes(i+1)) {
-            console.log('AAAAA',num, i+1)
-        }
+    for (let i = 0; i < board.length; i++){
+        if (num === board[i])
+            return [num, 'IS PRESENT']
     }
-    console.log(Hazards)
+    return [num, 'IS ABSENT']
 }
 
 // THIS FUNCTION CHECKS WHETHER THE PLAYER HAS GOTTEN TO A COIN
 function checkPlayerGotCoin (mode) {
+    /* Prevent checking whether the player has gotten the coin multiple times if 
+    they already have gotten it */
     if (gotCoin) {return}
+
+    // Get the regional co-ordinates of the player
     const playerRegions = getPlayerRegions()
     
 
     switch (mode) {
         case 'one-chase':
+            // For each of the player's co-ordinate, check whether one of them is the coin's
             playerRegions.forEach((region) => {
-                if (coinRegions.includes(region)) {
+                if (coinRegions.includes(region - 2)) {
+                    /* 
+                    Why region - 2 ?
+                    This is because the coinRegions array contains the index of the region
+                    which was removed
+                    to place the coin, not the region itself
+                    The region 2 has index 0, and 192 has index 190
+                      */
                     gotCoin = true
                 }
             })
+
+            // If you have gotten the coin
             if (gotCoin) {
+                /* Upon the next board placement, the program will run as if there was no 
+                coin initially */
                 coinsPlaced = false
+
+                // Actually remove the coin
                 document.querySelector('.coin').remove()
                 
-                loadedHazards = []
+                // Stops the function responsible for loading the board periodically
                 clearInterval(loadBoardInterval)
-                generateBoard('one-chase')
+
+                /*
+                Stops the function responsible for waiting for the board to load fully 
+                before checking whether the player died
+                */
+                clearTimeout(deathTimeout)
+
+                // Set the global gotCoin variable to false
                 gotCoin = false
+
+                // Generate the board again, now that everything has been reset
+                generateBoard('one-chase')
             }
             break
     }
@@ -500,6 +597,6 @@ function endGame() {
 
 
 enablePlayerMovement()
-displayPlayerPosition()
+//displayPlayerPosition()
 generateBoard('one-chase')
 
