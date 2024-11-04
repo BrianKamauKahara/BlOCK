@@ -1,3 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Bungee&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+
+
 * {
     margin: 0;
     padding: 0;
@@ -23,7 +30,89 @@ body {
     width: 100vw;
 }
 
+.start-screen {
+    transform: rotateY(90deg);
+    position: fixed;
+    height: 90vh;
+    width: 75vw;
+    margin: 5vh 12.5vw;
+    padding: 5%;
+    background: radial-gradient(rgba(92, 102, 112, 0.258),rgba(92, 102, 112, 0.497));
+    border-radius: 16px;
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.15), 0px 6px 6px rgba(0, 0, 0, 0.10);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    /* padding: 20%; */
+    animation: rotain 0.6s ease-out 0.3s 1 forwards;
+    transition: translate 0.2s ease;
+}
 
+.pop-up:hover {
+    translate: 0 -10px;
+    box-shadow: 0px 15px 25px rgba(0, 0, 0, 0.2), 0px 10px 10px rgba(0, 0, 0, 0.15);
+}
+
+.titling {
+    background: #61acbb;
+    width: 90%;
+    border: 10px double white ;
+    flex-grow: 1;
+    display: grid;
+    place-content: center;
+    font-family: 'Press Start 2P', sans-serif;
+    font-weight: bolder;
+    font-size: x-large;
+    transition: background-color 0.3s ease-in;
+    border-radius: 8px;
+}
+
+.titling:hover {
+    background-color: rgb(211, 28, 28);
+}
+
+.bodying {
+    flex-grow: 5;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Orbitron', sans-serif;
+    justify-content: space-evenly;
+    font-size: larger;
+    background-color: rgba(43, 85, 105, 0.258);
+    padding: 2rem;
+    margin: 1rem;
+    border-radius: 14px;
+}
+
+.centext {
+    text-align: center;
+}
+
+.centext:hover {
+    color: #6a0dad;
+    cursor: grab;
+    scale: 1.1;
+}
+
+.container-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width:  60%;
+    padding: 2vh;
+    background-color: rgba(92, 102, 112, 0.258);
+    border-radius: 4px;
+    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.3), -6px 6px 12px rgba(0, 0, 0, 0.2);
+    transition: translate 0.2s ease;
+}
+
+
+.extras {
+    flex-grow: 1;
+}
 
 .user-square {
     width: 25px;
@@ -42,6 +131,8 @@ body {
     box-shadow: 0px 12px 20px rgba(0, 0, 0, 0.6), /* larger, more opaque shadow */
                 0px 4px 10px rgba(0, 0, 0, 0.3) inset; /* deeper inner shadow */
 }
+
+
 
 .dead-player {
     background-color: greenyellow;
@@ -73,6 +164,10 @@ body {
     height: 0px;
     border: none;
 }
+
+/* .end-screen {
+
+} */
 
 
 @keyframes loading-hazard {
@@ -126,5 +221,12 @@ body {
         transform: rotateX(180deg) rotateY(180deg) scale(0.5);
         opacity: 0;
         box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1);
+    }
+}
+
+@keyframes rotain {
+    100% {
+        opacity: 1;
+        transform: rotateY(0deg); /* Rotate to original position */
     }
 }

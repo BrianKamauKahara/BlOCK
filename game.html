@@ -7,12 +7,22 @@
     <link rel="stylesheet" href="game.css">
 </head>
 <body>
+    <div class="start-screen pop-up" id="start">
+        <div class="container-container pop-up">
+            <div class="titling">TRAVELLER</div>
+            <div class="bodying">
+                <strong class="choose-diff centext">CHANGE DIFFICULTY</strong><hr>
+                <strong class="choose-mode centext">CHANGE MODE</strong>
+            </div>
+            <div class="extras"></div>
+        </div>
+    </div>
+    <div class="end-screen" id="end"></div>
     <div class="user-square" id="player">
         <div class="score-display">0</div>
         <input class="helper" type="text" autocomplete="off" autofocus="true"/>
     </div>
     <div class="hazards-container" id="hazard-area">
-        
     </div>
 
     <script src="game.js"></script>

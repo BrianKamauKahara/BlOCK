@@ -610,11 +610,27 @@ function endGame() {
     console.log('PLAYER DIED')
     player.classList.add('dead-player')
 
+    displayEndScreen()
+
 }
 
 
 
-enablePlayerMovement()
+//enablePlayerMovement()
 //displayPlayerPosition()
-generateBoard('one-chase')
+//generateBoard('one-chase')
 
+/* GAME OVER END SCREEN! */
+function displayEndScreen() {
+
+}
+
+/* BEFORE GAME STARTS START SCREEN */
+const gameContainer = `
+    <div class="user-square" id="player">
+        <div class="score-display">0</div>
+        <input class="helper" type="text" autocomplete="off" autofocus="true"/>
+    </div>
+    <div class="hazards-container" id="hazard-area">
+    </div>
+    `
