@@ -1,12 +1,13 @@
 const player = document.getElementById('player'),
     body = document.querySelector('body'),
     computedBody = window.getComputedStyle(body),
-    gameBoard = document.getElementById('hazard-area')
+    gameBoard = document.getElementById('hazard-area'),
+    scoreDisplay = document.querySelector('.score-display')
     
 
 
 // Giving the player height and width
-player.style.height = player.style.width = '30px'
+player.style.height = player.style.width = '24px'
 
 
 const bodyHeight = Number(computedBody.height.split('p')[0]),
@@ -27,27 +28,26 @@ const keyStates = {
     's':false
 }
 
-let distance = 10,
-    speed = 20
+let speed = 10,
+    buffer = 20,
+    maxSpeed = 10
 
 const playerCoordinates = {
-    'Y':[0,-playerHeight/distance],
-    'X':[0,playerWidth/distance]
+    'Y':[0,-playerHeight/speed],
+    'X':[0,playerWidth/speed]
 }
 
-player.addEventListener('keydown', (e)=> {
-    if (e.key === 'Shift'){
-        speed = 50
-        stationPlayer()
-        enablePlayerMovement()
-    }
-    
-})
+
 // W A S D MOVEMENT EVENT LISTENER
-player.addEventListener('keypress', (e) => {
+player.addEventListener('keydown', (e) => {
     if (!playing) {return}
     key = e.key.toLowerCase()
     
+    if (key === 'arrowup') { key = 'w'} else
+    if (key === 'arrowdown') { key = 's'} else
+    if (key === 'arrowleft') { key = 'a'} else
+    if (key === 'arrowright') { key = 'd'}
+
     // Returns for any other key
     if (key !=='w'&& key !=='a' && key !=='s' && key!=='d') {return}
     
@@ -73,8 +73,15 @@ player.addEventListener('keyup', (e) => {
     if (!playing) {return}
     key = e.key.toLowerCase()
     
+    if (key === 'arrowup') { key = 'w'} else
+    if (key === 'arrowdown') { key = 's'} else
+    if (key === 'arrowleft') { key = 'a'} else
+    if (key === 'arrowright') { key = 'd'}
+    
+    // Stop slowing down the player
     if (key === 'shift'){
-        speed = 20
+        speed = maxSpeed
+        // You have to reset player movement for it to work, but this is seamless
         stationPlayer()
         enablePlayerMovement()
     }
@@ -86,13 +93,24 @@ player.addEventListener('keyup', (e) => {
     keyStates[key] = false
 })
 
+// PRESS AND HOLD SHIFT TO SLOW DOWN
+player.addEventListener('keydown', (e)=> {
+    if (e.key === 'Shift'){
+        speed = maxSpeed / 2
+        // You have to reset player movement for it to work, but this is seamless
+        stationPlayer()
+        enablePlayerMovement()
+    }
+    
+})
+
 // ACTUAL MOVEMENT FUNTIONALITY
-let interval;
+let movementInterval;
 function update(direction) {
     /* If you are not to update in a certain direction, as indicated by the 
     keyStates dictionary, then do not*/
     if (!keyStates[direction]) {return}
-    
+    console.log(direction)
 
     // Determine the translation based on the direction of motion
 
@@ -121,33 +139,29 @@ function update(direction) {
         case 'w':
             // Positions the player ten pixels up
             if(playerCoordinates['Y'][0] >= 0 ) {return}
-            playerCoordinates['Y'][0]++
-            playerCoordinates['Y'][1]++
-            player.style.top = -distance*playerCoordinates['Y'][0] + 'px'
+            updateDS('Y','+')
+            player.style.top = -maxSpeed*playerCoordinates['Y'][0] + 'px'
             
             break
         case 's':
             // Positions the player ten pixels down
-            if(playerCoordinates['Y'][0] <= -bodyHeight/distance + playerHeight/distance) {return}
-            playerCoordinates['Y'][0]--
-            playerCoordinates['Y'][1]--
-            player.style.top = -distance*playerCoordinates['Y'][0] + 'px'
+            if(playerCoordinates['Y'][0] <= -bodyHeight/maxSpeed + playerHeight/maxSpeed) {return}
+            updateDS('Y','-')
+            player.style.top = -maxSpeed*playerCoordinates['Y'][0] + 'px'
             
             break
         case 'd':
             // Positions the player ten pixels right
-            if(playerCoordinates['X'][0] >= bodyWidth/distance - playerWidth/distance) {return}
-            playerCoordinates['X'][0]++
-            playerCoordinates['X'][1]++
-            player.style.left = distance*playerCoordinates['X'][0] + 'px'
+            if(playerCoordinates['X'][0] >= bodyWidth/maxSpeed - playerWidth/maxSpeed) {return}
+            updateDS('X','+')
+            player.style.left = maxSpeed*playerCoordinates['X'][0] + 'px'
             
             break
         case 'a':
             // Positions the player ten pixels left
             if(playerCoordinates['X'][0] <= 0 ) {return}
-            playerCoordinates['X'][0]--
-            playerCoordinates['X'][1]--
-            player.style.left = distance*playerCoordinates['X'][0] + 'px'
+            updateDS('X','-')
+            player.style.left = maxSpeed*playerCoordinates['X'][0] + 'px'
             
             break
     }
@@ -155,25 +169,35 @@ function update(direction) {
     checkPlayerAlive()
     checkPlayerGotCoin('one-chase')
 }
+function updateDS(direction, sign) {
+    if (sign === '+') {
+        playerCoordinates[direction][0] = playerCoordinates[direction][0] + speed/10
+        playerCoordinates[direction][1] = playerCoordinates[direction][1] + speed/10
+    }
+    else {
+        playerCoordinates[direction][0] = playerCoordinates[direction][0] - speed/10
+        playerCoordinates[direction][1] = playerCoordinates[direction][1] - speed/10
+    }
 
+
+}
 // stops the player from moving
 function stationPlayer () {
     // This function stops the program from updating the player's position
-    clearInterval(interval)
+    clearInterval(movementInterval)
 }
 
 // enables all movement functionality to start
 function enablePlayerMovement() {
     // This function keeps the program updating the player
     playing = true
-    interval = setInterval(() => {
+    movementInterval = setInterval(() => {
         update('w')
         update('s')
         update('a')
         update('d')
-    },speed)
+    },buffer)
 }
-
 
 // THIS FUNCTION RETURNS THE PLAYER'S CURRENT POSITION --- FOR CONVENIENT USE
 function playerCurrentXY () {
@@ -188,11 +212,12 @@ function displayPlayerPosition(){
     }, 1000)
 }
 
+
 /* ---------SECTION 2: PLACEMENT OF HAZARDS AND COINS ON THE GAME BOARD  */
 // DEFINITION OF GLOBAL STATE VARIABLES
 let widthDivisions = 16, 
     heightDivisions = 12,
-    ratioHazards = 0.4,
+    ratioHazards = 0.2,
     numGrids = widthDivisions * heightDivisions
 
 
@@ -204,14 +229,14 @@ gridHeight = bodyHeight/heightDivisions
 let Hazards = [],
     hazardData = {},
     loadedHazards = [],
-    loadBoardInterval,
     coinRegions = [],
     coinsPlaced = false,
-    coinString,
+    gotCoin = false,
     hazardDivs,
     coinDivs,
+    loadBoardInterval,
     deathTimeout
-let gotCoin = false
+
 
 // THIS FUNCTION CALCULATES AND STORES DATA ON THE AREAS WHERE HAZARDS WILL BE
 function generateHazardAreas(mode){
@@ -251,17 +276,6 @@ function generateHazardAreas(mode){
                 }
             })
     }
-}
-
-// THIS FUNCTION CONVERTS GRID NUMBER (REGIONAL CO-ORDS) TO PIXEL POSITION
-function determinePosition (gridNo) {
-    // Determine the row AND column
-    let row = Math.floor((gridNo - 1) / widthDivisions) + 1
-    let column = ((gridNo - 1) % widthDivisions) + 1
-
-    let gridX = (column - 1) * gridWidth
-    let gridY = (row - 1) * gridHeight
-    return [Number(gridX), Number(gridY)]
 }
 
 // THIS FUNCTION PLACES THE HAZARDS ON THE GAME BOARD
@@ -395,7 +409,7 @@ function generateBoard(mode) {
                 deathTimeout = setTimeout(() => {
                     loadedHazards = Hazards
                     checkPlayerAlive()
-                }, 1200)
+                }, 1000)
                 break
         }
 
@@ -415,11 +429,13 @@ function generateBoard(mode) {
                     deathTimeout = setTimeout(() => {
                         loadedHazards = Hazards
                         checkPlayerAlive()
-                    }, 1200)
+                    }, 1000)
                     break
             }     
         }, 3000);
 }
+
+// THIS FUNCTION RESETS THE GAME BOARD'S INNER HTML AND BOARD GLOBAL VARIABLE DATA
 function loadBoard() {
     /*
     Generates the data for the grid. This generates from 2 - 192, so that
@@ -431,7 +447,18 @@ function loadBoard() {
     gameBoard.innerHTML = ''
 }
 
-// THIS FUNCTION GETS THE REGIONAL CO-RDS WHICH THE PLAYER IS IN -- FOR UTMOST CONVENIENCE
+// THIS FUNCTION CONVERTS GRID NUMBER (REGIONAL CO-ORDS) TO PIXEL POSITION
+function determinePosition (gridNo) {
+    // Determine the row AND column
+    let row = Math.floor((gridNo - 1) / widthDivisions) + 1
+    let column = ((gridNo - 1) % widthDivisions) + 1
+
+    let gridX = (column - 1) * gridWidth
+    let gridY = (row - 1) * gridHeight
+    return [Number(gridX), Number(gridY)]
+}
+
+// THIS FUNCTION GETS THE REGIONAL CO-ORDS WHICH THE PLAYER IS IN -- FOR UTMOST CONVENIENCE
 function getPlayerRegions (){
     let playerCoords = playerCurrentXY()
 
@@ -445,7 +472,7 @@ function getPlayerRegions (){
     To convert the player's co-ordinates to regional co-ordinates 
 
     (The player's co-ordinates are not the same as the regional co-ordinates,
-    because the basis of the player's co- ordinates is the distance global
+    because the basis of the player's co- ordinates is the speed global
     variable defined at the beginning of the program, while the basis of 
     the regional co-ordinates is the number of divisions within the game 
     board (e.g, 16 by 12, 9 by 9, 16 by 16))
@@ -468,8 +495,8 @@ function getPlayerRegions (){
     /* These are the maximum values of the regional co - ordinates, useful  in 
     converting user co-ordinates to region co-ordinates
     */
-    let maxX = bodyWidth/distance,
-        maxY = bodyHeight/distance
+    let maxX = bodyWidth/maxSpeed,
+        maxY = bodyHeight/maxSpeed
 
     // Iterating through each corner:...
     playerCorners.forEach((corner) => {
@@ -512,15 +539,6 @@ function checkPlayerAlive () {
     return alive
 }
 
-// This function checks whether the provided region is within the board
-function checkIfInBoard (num) {
-    for (let i = 0; i < board.length; i++){
-        if (num === board[i])
-            return [num, 'IS PRESENT']
-    }
-    return [num, 'IS ABSENT']
-}
-
 // THIS FUNCTION CHECKS WHETHER THE PLAYER HAS GOTTEN TO A COIN
 function checkPlayerGotCoin (mode) {
     /* Prevent checking whether the player has gotten the coin multiple times if 
@@ -552,7 +570,7 @@ function checkPlayerGotCoin (mode) {
                 /* Upon the next board placement, the program will run as if there was no 
                 coin initially */
                 coinsPlaced = false
-
+                scoreDisplay.textContent++
                 // Actually remove the coin
                 document.querySelector('.coin').remove()
                 
