@@ -2,16 +2,16 @@ const player = document.getElementById('player'),
     body = document.querySelector('body'),
     computedBody = window.getComputedStyle(body),
     gameBoard = document.getElementById('hazard-area'),
-    scoreDisplay = document.querySelector('.score-display')
+    scoreDisplay = document.querySelector('.score-display'),
+    playerInparea = document.getElementById('inparea')
     
 
 
 // Giving the player height and width
 player.style.height = player.style.width = '24px'
 
-
-const bodyHeight = Number(computedBody.height.split('p')[0]),
-    bodyWidth = Number(computedBody.width.split('p')[0]),
+const bodyHeight = Number(computedBody.height.split('p')[0]) - Number(computedBody.border.split(' ')[0].split('p')[0]),
+    bodyWidth = Number(computedBody.width.split('p')[0]) - Number(computedBody.border.split(' ')[0].split('p')[0]),
     playerHeight = Number(player.style.height.split('p')[0]),
     playerWidth = Number(player.style.width.split('p')[0])
 
@@ -30,18 +30,24 @@ const keyStates = {
 
 let speed = 10,
     buffer = 20,
-    maxSpeed = 10
+    maxSpeed = 10,
+    moveMethod = 'keys'
 
 const playerCoordinates = {
-    'Y':[0,-playerHeight/speed],
-    'X':[0,playerWidth/speed]
+    'Y':[0,-playerHeight/maxSpeed],
+    'X':[0,playerWidth/maxSpeed]
 }
 
 
 // W A S D MOVEMENT EVENT LISTENER
 player.addEventListener('keydown', (e) => {
+    
     if (!playing) {return}
+    
+    if (moveMethod !== 'keys') {return}
+    
     key = e.key.toLowerCase()
+    
     
     if (key === 'arrowup') { key = 'w'} else
     if (key === 'arrowdown') { key = 's'} else
@@ -50,7 +56,7 @@ player.addEventListener('keydown', (e) => {
 
     // Returns for any other key
     if (key !=='w'&& key !=='a' && key !=='s' && key!=='d') {return}
-    
+
     /* 
     Upon testing, this is the best method I have come up with. So bear with
     It may be inefficient, but it works best and allows smoothest updatement
@@ -68,6 +74,18 @@ player.addEventListener('keydown', (e) => {
     keyStates[key] = true
 })
 
+/* document.addEventListener("mousemove", (event) => {
+    if (moveMethod !== 'cursor') {return}
+    const x = event.clientX
+    const y = event.clientY
+    player.style.left = x + 'px'
+    player.style.top = y + 'px'
+    playerCoordinates['X'] = [x/maxSpeed, (x + playerWidth)/maxSpeed ]
+    playerCoordinates['Y'] = [y/maxSpeed, -(y + playerHeight)/maxSpeed]
+    console.log(playerCoordinates['X'], playerCoordinates['Y'])
+    checkPlayerAlive()
+    checkPlayerGotCoin('one-chase')
+}); */
 // W A S D STOPPING MOVEMENT EVENT LISTENER
 player.addEventListener('keyup', (e) => {
     if (!playing) {return}
@@ -110,7 +128,7 @@ function update(direction) {
     /* If you are not to update in a certain direction, as indicated by the 
     keyStates dictionary, then do not*/
     if (!keyStates[direction]) {return}
-    console.log(direction)
+    
 
     // Determine the translation based on the direction of motion
 
@@ -138,29 +156,32 @@ function update(direction) {
     switch (direction){
         case 'w':
             // Positions the player ten pixels up
-            if(playerCoordinates['Y'][0] >= 0 ) {return}
-            updateDS('Y','+')
+            /* if(playerCoordinates['Y'][0] >= 0 ) {return} */
+            updateDS('Y','+',playerCoordinates['Y'][0],0)
             player.style.top = -maxSpeed*playerCoordinates['Y'][0] + 'px'
             
             break
         case 's':
             // Positions the player ten pixels down
-            if(playerCoordinates['Y'][0] <= -bodyHeight/maxSpeed + playerHeight/maxSpeed) {return}
-            updateDS('Y','-')
+            /* if(playerCoordinates['Y'][1] <= -bodyHeight/maxSpeed) {
+                console.log(bodyHeight)
+                
+                return} */
+            updateDS('Y','-',-playerCoordinates['Y'][1],bodyHeight/maxSpeed)
             player.style.top = -maxSpeed*playerCoordinates['Y'][0] + 'px'
             
             break
         case 'd':
             // Positions the player ten pixels right
-            if(playerCoordinates['X'][0] >= bodyWidth/maxSpeed - playerWidth/maxSpeed) {return}
-            updateDS('X','+')
+            /* if(playerCoordinates['X'][1] >= bodyWidth/maxSpeed) {return} */
+            updateDS('X','+',playerCoordinates['X'][1], bodyWidth/maxSpeed)
             player.style.left = maxSpeed*playerCoordinates['X'][0] + 'px'
             
             break
         case 'a':
             // Positions the player ten pixels left
-            if(playerCoordinates['X'][0] <= 0 ) {return}
-            updateDS('X','-')
+            /* if(playerCoordinates['X'][0] <= 0) {return} */
+            updateDS('X','-',-playerCoordinates['X'][0],0)
             player.style.left = maxSpeed*playerCoordinates['X'][0] + 'px'
             
             break
@@ -169,16 +190,18 @@ function update(direction) {
     checkPlayerAlive()
     checkPlayerGotCoin('one-chase')
 }
-function updateDS(direction, sign) {
+function updateDS(direction, sign, checkWith, max) {
+    console.log(checkWith)
+    if (checkWith >= max) {return}
     if (sign === '+') {
-        playerCoordinates[direction][0] = playerCoordinates[direction][0] + speed/10
-        playerCoordinates[direction][1] = playerCoordinates[direction][1] + speed/10
+        playerCoordinates[direction][0] = playerCoordinates[direction][0] + speed/maxSpeed
+        playerCoordinates[direction][1] = playerCoordinates[direction][1] + speed/maxSpeed
     }
     else {
-        playerCoordinates[direction][0] = playerCoordinates[direction][0] - speed/10
-        playerCoordinates[direction][1] = playerCoordinates[direction][1] - speed/10
+        playerCoordinates[direction][0] = playerCoordinates[direction][0] - speed/maxSpeed
+        playerCoordinates[direction][1] = playerCoordinates[direction][1] - speed/maxSpeed
     }
-
+    /* console.log(playerCoordinates['X'], playerCoordinates['Y']) */
 
 }
 // stops the player from moving
@@ -212,12 +235,12 @@ function displayPlayerPosition(){
     }, 1000)
 }
 
-
+{
 /* ---------SECTION 2: PLACEMENT OF HAZARDS AND COINS ON THE GAME BOARD  */
 // DEFINITION OF GLOBAL STATE VARIABLES
 let widthDivisions = 16, 
     heightDivisions = 12,
-    ratioHazards = 0.2,
+    ratioHazards = 0.35,
     numGrids = widthDivisions * heightDivisions
 
 
@@ -619,7 +642,10 @@ function endGame() {
 //enablePlayerMovement()
 //displayPlayerPosition()
 //generateBoard('one-chase')
-
+/* setInterval (() => {
+    playerInparea.focus()
+    playerInparea.setSelectionRange(4, 5)
+},1000) */
 /* GAME OVER END SCREEN! */
 function displayEndScreen() {
 
@@ -634,3 +660,5 @@ const gameContainer = `
     <div class="hazards-container" id="hazard-area">
     </div>
     `
+
+}
