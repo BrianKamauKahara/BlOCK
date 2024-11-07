@@ -11,6 +11,10 @@
     box-sizing: border-box;
 }
 
+.hidden {
+    display:none !important;
+}
+
 .pop-up:hover {
     translate: 0 -10px;
     box-shadow: 0px 15px 25px rgba(0, 0, 0, 0.2), 0px 10px 10px rgba(0, 0, 0, 0.15);
@@ -63,7 +67,7 @@ body {
 }
 
 .profile-diagram {
-    flex-grow: 2;
+    flex-grow: 3;
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -75,6 +79,7 @@ body {
     justify-content: center;
     align-items: end;
 }
+
 .actual-head {
     height: 70%;
     width: 25%;
@@ -98,10 +103,30 @@ body {
 
 .player-details {
     flex-grow: 3;
-    /* background-color: #0a0303; */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    text-transform: uppercase;
 }
 
-.container-container {
+.current-mode-disp, .current-diff-disp, .extra-details-disp {
+    background-color: white;
+    width: 98%;
+    text-align: center;
+    border: 5px solid slategray;
+    border-style: outset;
+    font-family: 'Roboto Condensed', sans-serif;
+    
+}
+
+.current-mode-disp:hover, .current-diff-disp:hover, .extra-details-disp:hover {
+    background-color: rgba(255, 255, 255, 0.815);
+    color: red;
+    cursor: pointer;
+}
+
+.central-panel {
     flex-grow: 2;
     display: flex;
     flex-direction: column;
@@ -145,10 +170,36 @@ body {
     padding: 2rem;
     margin: 1rem;
     border-radius: 14px;
+    width: 50%;
 }
 
 .centext {
     text-align: center;
+}
+
+.options{
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: #e0f7fa49 ;
+    border: 3px solid;
+    border-style: groove;
+}
+
+.option {
+    background-color: rgba(43, 85, 105, 0.258);
+    text-align: center;
+    border: 5px solid;
+    border-style: outset;
+}
+
+.option:hover {
+    background-color: #e0f7fa;
+}
+
+.mode-option {
+    text-transform: capitalize;
 }
 
 .right-panel {
@@ -160,7 +211,6 @@ body {
     cursor: grab;
     scale: 1.1;
 }
-
 
 .extras {
     flex-grow: 1;
@@ -188,9 +238,8 @@ body {
     place-content: center;
     box-shadow: 0px 12px 20px rgba(0, 0, 0, 0.6), /* larger, more opaque shadow */
                 0px 4px 10px rgba(0, 0, 0, 0.3) inset; /* deeper inner shadow */
+
 }
-
-
 
 .dead-player {
     background-color: greenyellow;
@@ -222,10 +271,6 @@ body {
     height: 0px;
     border: none;
 }
-
-/* .end-screen {
-
-} */
 
 
 @keyframes loading-hazard {

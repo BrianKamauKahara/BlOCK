@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="game.css">
 </head>
 <body>
-    <div class="start-screen pop-up" id="start">
+    <div class="start-screen pop-up hidden" id="start">
         <div class="left-panel">
             <div class="profile-diagram">
                 <div class="profile-head">
@@ -16,29 +16,33 @@
                 <div class="profile-body">
                     <div class="actual-body"></div>
                 </div>
+                <hr style="width: 90%; margin: auto;">
+                <hr style="width: 90%; margin: auto;">
+                <hr style="width: 90%; margin: auto;">
+                <hr style="width: 90%; margin: auto;">
             </div>
             <div class="player-details">
-                <div class="current-mode-disp" id="current-mode">BY</div>
-                <div class="current-diff-disp" id="current-dff">AX</div>
+                <div class="current-mode-disp" id="mode-disp">MODE</div>
+                <div class="current-diff-disp" id="diff-disp">DIFFICULTY</div>
+                <div class="extra-details-disp" id="extra-details">EXTRAS</div>
             </div>
         </div>
-        <div class="container-container pop-up">
+        <div class="central-panel pop-up">
             <div class="titling">TRAVELLER</div>
             <div class="bodying">
-                <strong class="choose-diff centext">CHANGE DIFFICULTY</strong><hr>
-                <strong class="choose-mode centext">CHANGE MODE</strong>
+                <strong class="choose-diff centext" id="change-diff">CHANGE DIFFICULTY</strong><hr>
+                <strong class="choose-mode centext" id="change-mode">CHANGE MODE</strong>
+                <div class="options hidden" id="options-menu"></div>
             </div>
             <div class="extras"></div>
         </div>
         <div class="right-panel">AAAAAAAA</div>
     </div>
-    <div class="end-screen" id="end"></div>
-    <div class="user-square" id="player">
+    <div class="user-square hidden" id="player">
         <div class="score-display">0</div>
         <input class="helper" type="text" autocomplete="off" autofocus="true" id="inparea"/>
     </div>
-    <div class="hazards-container" id="hazard-area">
-    </div>
+    <div class="hazards-container hidden" id="hazard-area"></div>
 
     <script src="game.js"></script>
 </body>

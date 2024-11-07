@@ -20,6 +20,7 @@ let playing = false
 
 
 /* ---------SECTION 1: PLAYER MOVEMENT FUNCTIONALITY  */
+{
 // DEFINITION OF GLOBAL STATE VARIABLES
 const keyStates = {
     'w':false,
@@ -74,7 +75,8 @@ player.addEventListener('keydown', (e) => {
     keyStates[key] = true
 })
 
-/* document.addEventListener("mousemove", (event) => {
+{
+    /* document.addEventListener("mousemove", (event) => {
     if (moveMethod !== 'cursor') {return}
     const x = event.clientX
     const y = event.clientY
@@ -86,6 +88,8 @@ player.addEventListener('keydown', (e) => {
     checkPlayerAlive()
     checkPlayerGotCoin('one-chase')
 }); */
+}
+
 // W A S D STOPPING MOVEMENT EVENT LISTENER
 player.addEventListener('keyup', (e) => {
     if (!playing) {return}
@@ -234,9 +238,10 @@ function displayPlayerPosition(){
         getPlayerRegions()
     }, 1000)
 }
+}
 
-{
 /* ---------SECTION 2: PLACEMENT OF HAZARDS AND COINS ON THE GAME BOARD  */
+{
 // DEFINITION OF GLOBAL STATE VARIABLES
 let widthDivisions = 16, 
     heightDivisions = 12,
@@ -662,3 +667,127 @@ const gameContainer = `
     `
 
 }
+
+/* ---------SECTION 3: GAME SCREEN FUNCTIONALITY, ACTUAL GAMEPLAY  */
+const startScreen = document.getElementById('start'),
+    changeDiffBtn = document.getElementById('change-diff'),
+    changeModeBtn = document.getElementById('change-mode'),
+    diffDisplay = document.getElementById('diff-disp'),
+    modeDisplay = document.getElementById('mode-disp'),
+    optionsMenu = document.getElementById('options-menu'),
+    difficulties = {
+        "Easy" : {
+            "ratioHazards":[0.1,0.3],
+            "emojis":["🙂", "😊", "😃", "😄", "😁", "😍", "🤩"]
+        },
+        "Normal" : {
+            "ratioHazards":[0.3,0.5],
+            "emojis":["😐","🙂","😌","😊", "😄","😀","😁"]
+        },
+        "Hard" : {
+            "ratioHazards":[0.5,0.7],
+            "emojis":["😑", "😬", "😔", "😕", "😟", "😞", "😢"]
+        },
+        "Extreme" : {
+            "ratioHazards":[0.7,0.9],
+            "emojis":["😕","😟","😔", "😞","😢","😭","😶"]
+        }
+    },
+    modes = ["one-chase", "x-chase", "timer"]
+
+let difficultyChosen, modeChosen
+/* const startScreen = require('./elements') */
+function displayStartScreen() {
+    // Hide the player square and the game Board
+    if (!player.classList.contains('hidden')) {
+        player.classList.toggle('hidden')
+    }
+    if (!gameBoard.classList.contains('hidden')) {
+        gameBoard.classList.toggle('hidden')
+    }
+
+    // Display the Game Screen
+    startScreen.classList.toggle('hidden')
+}
+
+function select(selection, selected) {
+    if (selection === 'diff') {
+        /* ---- Setting a difficulty */
+        // Set the difficultyChosen global variable to selected difficulty
+        difficultyChosen = selected
+
+        // Hide the options menu
+        optionsMenu.classList.toggle('hidden')
+
+        // Re-display the change difficulty and change mode buttons (and the <hr> between them)
+        changeDiffBtn.classList.toggle('hidden')
+        changeModeBtn.classList.toggle('hidden')
+        changeDiffBtn.nextSibling.classList.toggle('hidden')
+
+        // Display this chosen difficulty
+        diffDisplay.textContent = selected
+
+    } else 
+    if (selection === 'mode') {
+        /* ---- Setting a mode */
+        // Set the difficultyChosen global variable to selected difficulty
+        modeChosen = selected
+
+        // Hide the options menu
+        optionsMenu.classList.toggle('hidden')
+
+        // Re-display the change difficulty and change mode buttons (and the <hr> between them)
+        changeDiffBtn.classList.toggle('hidden')
+        changeModeBtn.classList.toggle('hidden')
+        changeDiffBtn.nextSibling.classList.toggle('hidden')
+
+        // Display this chosen difficulty
+        modeDisplay.textContent = selected
+    }
+    
+}
+
+changeDiffBtn.addEventListener('click', () => {
+    // Hide the two buttons, and the <hr> between them
+    changeDiffBtn.classList.toggle('hidden')
+    changeModeBtn.classList.toggle('hidden')
+    changeDiffBtn.nextSibling.classList.toggle('hidden')
+    
+
+    // Add the difficulty options into the options menu
+    let keyString = ''
+    Object.keys(difficulties).forEach((difficulty) => {
+        keyString += `
+            <div class="option diff-option" id="${difficulty}" onclick = 'select("diff","${difficulty}")'>${difficulty}</div>
+        `
+    })
+
+    // Display the options menu and add the difficulties
+    optionsMenu.classList.toggle('hidden')
+    optionsMenu.innerHTML = keyString
+})
+
+changeModeBtn.addEventListener('click', () => {
+    // Hide the two buttons, and the <hr> between them
+    changeDiffBtn.classList.toggle('hidden')
+    changeModeBtn.classList.toggle('hidden')
+    changeDiffBtn.nextSibling.classList.toggle('hidden')
+    
+
+    // Add the mode options into the options menu
+    let keyString = ''
+    modes.forEach((mode) => {
+        keyString += `
+            <div class="option mode-option" id="${mode}" onclick = 'select("mode","${mode}")'>${mode}</div>
+        `
+    })
+
+    // Display the options menu and add the difficulties
+    optionsMenu.classList.toggle('hidden')
+    optionsMenu.innerHTML = keyString
+})
+
+
+
+
+displayStartScreen()
