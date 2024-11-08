@@ -20,7 +20,7 @@ let playing = false
 
 
 /* ---------SECTION 1: PLAYER MOVEMENT FUNCTIONALITY  */
-{
+
 // DEFINITION OF GLOBAL STATE VARIABLES
 const keyStates = {
     'w':false,
@@ -41,7 +41,7 @@ const playerCoordinates = {
 
 
 // W A S D MOVEMENT EVENT LISTENER
-player.addEventListener('keydown', (e) => {
+player.addEventListener('keypress', (e) => {
     
     if (!playing) {return}
     
@@ -49,11 +49,6 @@ player.addEventListener('keydown', (e) => {
     
     key = e.key.toLowerCase()
     
-    
-    if (key === 'arrowup') { key = 'w'} else
-    if (key === 'arrowdown') { key = 's'} else
-    if (key === 'arrowleft') { key = 'a'} else
-    if (key === 'arrowright') { key = 'd'}
 
     // Returns for any other key
     if (key !=='w'&& key !=='a' && key !=='s' && key!=='d') {return}
@@ -117,13 +112,21 @@ player.addEventListener('keyup', (e) => {
 
 // PRESS AND HOLD SHIFT TO SLOW DOWN
 player.addEventListener('keydown', (e)=> {
-    if (e.key === 'Shift'){
+    let key = e.key
+
+    if (key === 'Shift'){
         speed = maxSpeed / 2
         // You have to reset player movement for it to work, but this is seamless
         stationPlayer()
         enablePlayerMovement()
-    }
+        return
+    } else
+    if (key === 'arrowup') { key = 'w'} else
+    if (key === 'arrowdown') { key = 's'} else
+    if (key === 'arrowleft') { key = 'a'} else
+    if (key === 'arrowright') { key = 'd'} else {return}
     
+    keyStates[key] = true
 })
 
 // ACTUAL MOVEMENT FUNTIONALITY
@@ -194,8 +197,8 @@ function update(direction) {
     checkPlayerAlive()
     checkPlayerGotCoin('one-chase')
 }
+
 function updateDS(direction, sign, checkWith, max) {
-    console.log(checkWith)
     if (checkWith >= max) {return}
     if (sign === '+') {
         playerCoordinates[direction][0] = playerCoordinates[direction][0] + speed/maxSpeed
@@ -216,6 +219,8 @@ function stationPlayer () {
 
 // enables all movement functionality to start
 function enablePlayerMovement() {
+    console.log('PLAYER MOVEMENT ENABLED')
+    playerInparea.focus()
     // This function keeps the program updating the player
     playing = true
     movementInterval = setInterval(() => {
@@ -238,10 +243,10 @@ function displayPlayerPosition(){
         getPlayerRegions()
     }, 1000)
 }
-}
+
 
 /* ---------SECTION 2: PLACEMENT OF HAZARDS AND COINS ON THE GAME BOARD  */
-{
+
 // DEFINITION OF GLOBAL STATE VARIABLES
 let widthDivisions = 16, 
     heightDivisions = 12,
@@ -263,7 +268,8 @@ let Hazards = [],
     hazardDivs,
     coinDivs,
     loadBoardInterval,
-    deathTimeout
+    deathTimeout,
+    coinsGotten = 0
 
 
 // THIS FUNCTION CALCULATES AND STORES DATA ON THE AREAS WHERE HAZARDS WILL BE
@@ -614,6 +620,12 @@ function checkPlayerGotCoin (mode) {
                 // Set the global gotCoin variable to false
                 gotCoin = false
 
+                // Increase the number of coins gotten
+                coinsGotten++
+
+                // Increase the ratio Hazards
+                incRatioHazards()
+
                 // Generate the board again, now that everything has been reset
                 generateBoard('one-chase')
             }
@@ -623,6 +635,14 @@ function checkPlayerGotCoin (mode) {
     
 
     
+}
+
+function incRatioHazards() {
+    let diff = difficulties[difficultyChosen]
+    let cap = diff["cap"],
+        limits = diff["ratioHazards"]
+    
+    ratioHazards = coinsGotten > cap ? limits[1] : (limits[1] - limits[0]) * coinsGotten / cap + limits[0]
 }
 
 // THIS FUNCTION ENDS THE GAME
@@ -638,35 +658,10 @@ function endGame() {
     console.log('PLAYER DIED')
     player.classList.add('dead-player')
 
-    displayEndScreen()
+    //displayEndScreen()
 
 }
 
-
-
-//enablePlayerMovement()
-//displayPlayerPosition()
-//generateBoard('one-chase')
-/* setInterval (() => {
-    playerInparea.focus()
-    playerInparea.setSelectionRange(4, 5)
-},1000) */
-/* GAME OVER END SCREEN! */
-function displayEndScreen() {
-
-}
-
-/* BEFORE GAME STARTS START SCREEN */
-const gameContainer = `
-    <div class="user-square" id="player">
-        <div class="score-display">0</div>
-        <input class="helper" type="text" autocomplete="off" autofocus="true"/>
-    </div>
-    <div class="hazards-container" id="hazard-area">
-    </div>
-    `
-
-}
 
 /* ---------SECTION 3: GAME SCREEN FUNCTIONALITY, ACTUAL GAMEPLAY  */
 const startScreen = document.getElementById('start'),
@@ -675,28 +670,33 @@ const startScreen = document.getElementById('start'),
     diffDisplay = document.getElementById('diff-disp'),
     modeDisplay = document.getElementById('mode-disp'),
     optionsMenu = document.getElementById('options-menu'),
+    playBtn = document.getElementById('play'),
     difficulties = {
         "Easy" : {
             "ratioHazards":[0.1,0.3],
+            "cap":30,
             "emojis":["🙂", "😊", "😃", "😄", "😁", "😍", "🤩"]
         },
         "Normal" : {
             "ratioHazards":[0.3,0.5],
+            "cap":27,
             "emojis":["😐","🙂","😌","😊", "😄","😀","😁"]
         },
         "Hard" : {
             "ratioHazards":[0.5,0.7],
+            "cap":24,
             "emojis":["😑", "😬", "😔", "😕", "😟", "😞", "😢"]
         },
         "Extreme" : {
             "ratioHazards":[0.7,0.9],
+            "cap":20,
             "emojis":["😕","😟","😔", "😞","😢","😭","😶"]
         }
     },
     modes = ["one-chase", "x-chase", "timer"]
 
-let difficultyChosen, modeChosen
-/* const startScreen = require('./elements') */
+let difficultyChosen = "Normal", modeChosen = "one-chase"
+
 function displayStartScreen() {
     // Hide the player square and the game Board
     if (!player.classList.contains('hidden')) {
@@ -787,7 +787,32 @@ changeModeBtn.addEventListener('click', () => {
     optionsMenu.innerHTML = keyString
 })
 
+playBtn.addEventListener('click', () => {
+    // Stop displaying the game screen
+    startScreen.classList.toggle('hiding')
+    
+    setTimeout(() => {
+        startScreen.classList.toggle('hidden')
+        startScreen.classList.toggle('hiding')
+    },1000)
+    
+    
+    // Display the user square and hazard area
+    player.classList.toggle('hidden')
+    gameBoard.classList.toggle('hidden')
 
+    startGame()
+})
 
+function startGame() {
+    ratioHazards = difficulties[difficultyChosen]['ratioHazards'][0]
+
+    enablePlayerMovement()
+    generateBoard(modeChosen)
+}
 
 displayStartScreen()
+
+
+
+
