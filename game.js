@@ -34,9 +34,10 @@ let keyStates = {
 }
 
 let speed = 10,
-    buffer = 20,
-    maxSpeed = 10,
     moveMethod = 'keys'
+
+const buffer = 20,
+    maxSpeed = 10
 
 let playerCoordinates = {
     'Y':[0,-playerHeight/maxSpeed],
@@ -45,7 +46,7 @@ let playerCoordinates = {
 
 
 // W A S D MOVEMENT EVENT LISTENER
-player.addEventListener('keypress', (e) => {
+player.addEventListener('keydown', (e) => {
     
     if (!playing) {return}
     
@@ -224,26 +225,7 @@ function enablePlayerMovement() {
 
     // Focus within the player, to listen to events
     playerInparea.focus()
-
-    // Reset the player's position, and coordinates
-    player.style.top = '0px'
-    player.style.left = '0px'
-
-    playerCoordinates = {
-        'Y':[0,-playerHeight/maxSpeed],
-        'X':[0,playerWidth/maxSpeed]
-    }
-
-    // Reset the keyStates movement dictionary
-    keyStates = {
-        'w':false,
-        'd':false,
-        'a':false,
-        's':false
-    }
-
     
-
     // This function keeps the program updating the player
     playing = true
     movementInterval = setInterval(() => {
@@ -863,6 +845,26 @@ function startGame() {
     gotCoin = false,
     coinsGotten = 0
     clearInterval(loadBoardInterval)
+
+    // Reset the player's position, and coordinates
+    player.style.top = '0px'
+    player.style.left = '0px'
+
+    playerCoordinates = {
+        'Y':[0,-playerHeight/maxSpeed],
+        'X':[0,playerWidth/maxSpeed]
+    }
+    
+    // Reset the player speed
+    speed = maxSpeed
+
+    // Reset the keyStates movement dictionary
+    keyStates = {
+        'w':false,
+        'd':false,
+        'a':false,
+        's':false
+    }
 
     // The ongoing score display set to 0
     scoreDisplay.textContent = 0
