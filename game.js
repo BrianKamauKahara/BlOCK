@@ -1,11 +1,18 @@
+ /*
+Next version
+1. A UI that, is mid game, would enable the player to quit mid game (or something else, maybe pause?)
+2. Implement game audios
+3. Implement profile services and storage of data
+4. Implement communication to devs, and feedback
+*/
+
+/* ---------SECTION 1: PLAYER MOVEMENT FUNCTIONALITY  */
 const player = document.getElementById('player'),
     body = document.querySelector('body'),
     computedBody = window.getComputedStyle(body),
     gameBoard = document.getElementById('hazard-area'),
     scoreDisplay = document.querySelector('.score-display'),
     playerInparea = document.getElementById('inparea')
-    
-
 
 // Giving the player height and width
 player.style.height = player.style.width = '24px'
@@ -18,11 +25,8 @@ const bodyHeight = Number(computedBody.height.split('p')[0]) - Number(computedBo
 
 let playing = false
 
-
-/* ---------SECTION 1: PLAYER MOVEMENT FUNCTIONALITY  */
-
 // DEFINITION OF GLOBAL STATE VARIABLES
-const keyStates = {
+let keyStates = {
     'w':false,
     'd':false,
     'a':false,
@@ -34,7 +38,7 @@ let speed = 10,
     maxSpeed = 10,
     moveMethod = 'keys'
 
-const playerCoordinates = {
+let playerCoordinates = {
     'Y':[0,-playerHeight/maxSpeed],
     'X':[0,playerWidth/maxSpeed]
 }
@@ -70,6 +74,7 @@ player.addEventListener('keypress', (e) => {
     keyStates[key] = true
 })
 
+// Cursor movement functionality - in the future
 {
     /* document.addEventListener("mousemove", (event) => {
     if (moveMethod !== 'cursor') {return}
@@ -163,31 +168,24 @@ function update(direction) {
     switch (direction){
         case 'w':
             // Positions the player ten pixels up
-            /* if(playerCoordinates['Y'][0] >= 0 ) {return} */
             updateDS('Y','+',playerCoordinates['Y'][0],0)
             player.style.top = -maxSpeed*playerCoordinates['Y'][0] + 'px'
             
             break
         case 's':
             // Positions the player ten pixels down
-            /* if(playerCoordinates['Y'][1] <= -bodyHeight/maxSpeed) {
-                console.log(bodyHeight)
-                
-                return} */
             updateDS('Y','-',-playerCoordinates['Y'][1],bodyHeight/maxSpeed)
             player.style.top = -maxSpeed*playerCoordinates['Y'][0] + 'px'
             
             break
         case 'd':
             // Positions the player ten pixels right
-            /* if(playerCoordinates['X'][1] >= bodyWidth/maxSpeed) {return} */
             updateDS('X','+',playerCoordinates['X'][1], bodyWidth/maxSpeed)
             player.style.left = maxSpeed*playerCoordinates['X'][0] + 'px'
             
             break
         case 'a':
             // Positions the player ten pixels left
-            /* if(playerCoordinates['X'][0] <= 0) {return} */
             updateDS('X','-',-playerCoordinates['X'][0],0)
             player.style.left = maxSpeed*playerCoordinates['X'][0] + 'px'
             
@@ -208,8 +206,6 @@ function updateDS(direction, sign, checkWith, max) {
         playerCoordinates[direction][0] = playerCoordinates[direction][0] - speed/maxSpeed
         playerCoordinates[direction][1] = playerCoordinates[direction][1] - speed/maxSpeed
     }
-    /* console.log(playerCoordinates['X'], playerCoordinates['Y']) */
-
 }
 // stops the player from moving
 function stationPlayer () {
@@ -219,8 +215,31 @@ function stationPlayer () {
 
 // enables all movement functionality to start
 function enablePlayerMovement() {
+    if (!playing) {return}
     console.log('PLAYER MOVEMENT ENABLED')
+
+    // Focus within the player, to listen to events
     playerInparea.focus()
+
+    // Reset the player's position, and coordinates
+    player.style.top = '0px'
+    player.style.left = '0px'
+
+    playerCoordinates = {
+        'Y':[0,-playerHeight/maxSpeed],
+        'X':[0,playerWidth/maxSpeed]
+    }
+
+    // Reset the keyStates movement dictionary
+    keyStates = {
+        'w':false,
+        'd':false,
+        'a':false,
+        's':false
+    }
+
+    
+
     // This function keeps the program updating the player
     playing = true
     movementInterval = setInterval(() => {
@@ -605,6 +624,7 @@ function checkPlayerGotCoin (mode) {
                 coin initially */
                 coinsPlaced = false
                 scoreDisplay.textContent++
+
                 // Actually remove the coin
                 document.querySelector('.coin').remove()
                 
@@ -647,6 +667,8 @@ function incRatioHazards() {
 
 // THIS FUNCTION ENDS THE GAME
 function endGame() {
+    if (!playing) {return}
+    console.log('PLAYER DIED')
     playing = false
 
     // Stop the player from moving
@@ -655,11 +677,17 @@ function endGame() {
     // Stop loading hazards
     clearInterval(loadBoardInterval)
 
-    console.log('PLAYER DIED')
-    player.classList.add('dead-player')
+    // Animate the player's death
+    player.classList.toggle('dead-player')
 
-    //displayEndScreen()
+    // Clear this animation after its duration
+    setTimeout(() => {
+        player.classList.toggle('dead-player')
+    },1000)
 
+
+    // Display the Endscreen
+    displayEndScreen()
 }
 
 
@@ -693,18 +721,27 @@ const startScreen = document.getElementById('start'),
             "emojis":["😕","😟","😔", "😞","😢","😭","😶"]
         }
     },
-    modes = ["one-chase", "x-chase", "timer"]
+    modes = {
+        "one-chase": {
+            "implemented":true,
+            "description":"The player chases only one coin around the board, which is placed randomly"
+        }, 
+        "x-chase": {
+            "implemented":false,
+            "description":""
+        }, 
+        "timer": {
+            "implemented":false,
+            "description":""
+        }
+        }
 
 let difficultyChosen = "Normal", modeChosen = "one-chase"
 
 function displayStartScreen() {
     // Hide the player square and the game Board
-    if (!player.classList.contains('hidden')) {
-        player.classList.toggle('hidden')
-    }
-    if (!gameBoard.classList.contains('hidden')) {
-        gameBoard.classList.toggle('hidden')
-    }
+    player.classList.toggle('hidden')
+    gameBoard.classList.toggle('hidden')
 
     // Display the Game Screen
     startScreen.classList.toggle('hidden')
@@ -730,7 +767,12 @@ function select(selection, selected) {
     } else 
     if (selection === 'mode') {
         /* ---- Setting a mode */
-        // Set the difficultyChosen global variable to selected difficulty
+        // Set the modeChosen global variable to selected difficulty
+        // For some modes not implemented yet
+        if (!modes[selected]["implemented"]) {
+            alert(`Hi! The ${selected} mode is Coming Soon! Only one-chase available for now!`)
+            return
+        }
         modeChosen = selected
 
         // Hide the options menu
@@ -776,7 +818,7 @@ changeModeBtn.addEventListener('click', () => {
 
     // Add the mode options into the options menu
     let keyString = ''
-    modes.forEach((mode) => {
+    Object.keys(modes).forEach((mode) => {
         keyString += `
             <div class="option mode-option" id="${mode}" onclick = 'select("mode","${mode}")'>${mode}</div>
         `
@@ -805,14 +847,63 @@ playBtn.addEventListener('click', () => {
 })
 
 function startGame() {
+    // Get the ratio Hazards global variable based on the difficulty chosen
     ratioHazards = difficulties[difficultyChosen]['ratioHazards'][0]
 
+    // Reset all previous metadata
+    Hazards = [],
+    hazardData = {},
+    loadedHazards = [],
+    coinRegions = [],
+    coinsPlaced = false,
+    gotCoin = false,
+    coinsGotten = 0
+    clearInterval(loadBoardInterval)
+
+    // The ongoing score display set to 0
+    scoreDisplay.textContent = 0
+
+    // Set playing to true
+    playing = true
+
+    // Start the game
     enablePlayerMovement()
     generateBoard(modeChosen)
 }
 
+
+/* ---------SECTION 4: GAME END SCREEN FUNCTIONALITY */
+const endScreen = document.getElementById('end'),
+    scoreShow = document.getElementById('end-score'),
+    mainMenuBtn = document.getElementById('mmenu-btn'),
+    replayBtn = document.getElementById('replay-btn')
+
+function displayEndScreen() {
+    // Showcase the On death Screen
+    endScreen.classList.toggle('hidden')
+
+    // Display the user's score
+    scoreShow.textContent = coinsGotten
+
+}
+
+mainMenuBtn.addEventListener('click', () => {
+    /* This button should display once again, the start screen */
+    // Stop displaying the end screen
+    endScreen.classList.toggle('hidden')
+
+    // Display the start screen
+    displayStartScreen() 
+})
+
+replayBtn.addEventListener('click', () => {
+    /* This button should enable the player to play another round */
+    // Stop displaying the end screen
+    endScreen.classList.toggle('hidden')
+
+    // Start another round
+    startGame()
+})
+
+/* MAIN () */
 displayStartScreen()
-
-
-
-

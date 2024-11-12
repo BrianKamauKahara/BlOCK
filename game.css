@@ -183,7 +183,7 @@ body {
 
 .centext:hover {
     color: #6a0dad;
-    cursor: pointer;
+    cursor: cell;
     scale: 1.1;
 }
 
@@ -206,7 +206,7 @@ body {
 
 .option:hover {
     background-color: #e0f7fa;
-    cursor: pointer;
+    cursor: cell;
 }
 
 .mode-option {
@@ -309,6 +309,74 @@ body {
     border: none;
 }
 
+.end-screen {
+    opacity: 0;
+    position: fixed;
+    height: 50vh;
+    width: 40vw;
+    margin: 25vh 30vw;
+    padding: 4% 8%;
+    background: radial-gradient(rgba(92, 102, 112, 0.681),rgba(92, 102, 112, 0.674),rgba(92, 102, 112, 0.658));
+    border-radius: 16px;
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.15), 0px 6px 6px rgba(0, 0, 0, 0.10);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    animation: appear 0.6s ease 0.3s 1 forwards;
+    transition: translate 0.2s ease;
+    z-index: 30;
+}
+
+.game-over-display {
+    font-size: xx-large;
+    font-family: "Press Start 2P";
+    transition: color 0.2s ease;
+    flex-grow: 1;
+}
+
+.final-score-display {
+    flex-grow: 2;
+    font-size: x-large;
+    color: white;
+    font-weight: bold;
+    font-family: 'Orbitron', sans-serif;
+    transition: color 0.2s ease-in, scale 0.2s ease;
+}
+
+.final-score-display:hover {
+    color: #ff9900;
+    scale: 1.04;
+    
+}
+
+.two-end-buttons-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    font-size: large;
+}
+
+.to-main-menu-btn, .replay-btn {
+    background-color: white;
+    display: grid;
+    place-content: center;
+    border-radius: 4px;
+    padding: 0 1rem;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.to-main-menu-btn:hover, .replay-btn:hover {
+    color: rebeccapurple;
+    cursor: cell;
+    background: rgb(233, 255, 181);
+}
+
+.game-over-display:hover {
+    color: red;
+}
 
 @keyframes loading-hazard {
     0% {
@@ -382,3 +450,19 @@ body {
     }
 }
 
+@keyframes appear {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+
+    66% {
+        opacity: 0.66;
+        transform: scale(1.02);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
