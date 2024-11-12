@@ -53,6 +53,10 @@ player.addEventListener('keypress', (e) => {
     
     key = e.key.toLowerCase()
     
+    if (key === 'arrowup') { key = 'w'} else
+    if (key === 'arrowdown') { key = 's'} else
+    if (key === 'arrowleft') { key = 'a'} else
+    if (key === 'arrowright') { key = 'd'}
 
     // Returns for any other key
     if (key !=='w'&& key !=='a' && key !=='s' && key!=='d') {return}
@@ -597,7 +601,7 @@ function checkPlayerGotCoin (mode) {
     /* Prevent checking whether the player has gotten the coin multiple times if 
     they already have gotten it */
     if (gotCoin) {return}
-
+    if(!playing) {return}
     // Get the regional co-ordinates of the player
     const playerRegions = getPlayerRegions()
     
